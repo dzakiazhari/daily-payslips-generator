@@ -17,7 +17,6 @@ The input_determined.py script requires the following Python packages:
 You can install them using pip:
 
 ```
-pythonCopy code
 pip install pandas
 ```
 
@@ -26,7 +25,6 @@ pip install pandas
 To use the aio_prompts.py script, simply run it in your command line interface:
 
 ```
-pythonCopy code
 python aio_prompts.py
 ```
 

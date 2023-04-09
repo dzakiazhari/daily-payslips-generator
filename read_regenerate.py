@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 # Reuse functions from the original input code
-from input import read_and_sort_csv, calculate_salary
+from aio_prompts import read_and_sort_csv, calculate_salary
 
 def read_debts(filename: str) -> pd.DataFrame:
     debts = pd.read_csv(filename, names=["Name", "Debt", "Remaining Debt"])

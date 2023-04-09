@@ -30,22 +30,22 @@ python aio_prompts.py
 
 ### How to Use
 
-Run the program aio_prompts.py in the command line.
+1. Run the program aio_prompts.py in the command line.
 
-Input the worker's name, day, plastic type, and weight (in KG) when prompted. Input "N" when you are finished inputting data for the day.
+2. Input the worker's name, day, plastic type, and weight (in KG) when prompted. Input "N" when you are finished inputting data for the day.
 
-You will then be prompted with a few choices:
+3. You will then be prompted with a few choices:
 
-- D - delete the last row of data 
-- L - view the current data 
-- S - save the current data and exit 
-- C - continue inputting data from the last saved data Input the price for each plastic type when prompted.
+	- D - delete the last row of data 
+	- L - view the current data 
+	- S - save the current data and exit 
+	- C - continue inputting data from the last saved data Input the price for each plastic type when prompted.
 
-Input the number of workers with remaining debts.
+4. Input the number of workers with remaining debts.
 
-Input the name, debt, and remaining debt for each worker with remaining debts.
+5. Input the name, debt, and remaining debt for each worker with remaining debts.
 
-The program will generate a markdown table for each worker's payslip.
+6. The program will generate a markdown table for each worker's payslip.
 
 ### Files
 

@@ -10,25 +10,55 @@ def input_data() -> str:
 
     with open(filename, "a", newline="") as csvfile:
         csv_writer = csv.writer(csvfile)
+        rows = []
         while True:
             name = input("Nama ('N'): ").upper()
             if name == "N":
-                break
-
-            day = input("Masukkan Hari: ").upper()
-            plastic_type = input("Jenis Plastik: ").upper()
-            weight = input("Timbangan (KG): ")
-
-            if "+" in weight:
-                weight = sum(map(float, weight.split("+")))
-            elif "." in weight:
-                weight = float(weight)
+                choice = input("Tekan 'D' untuk menghapus baris terakhir\n"
+                               "Tekan 'L' untuk melihat data saat ini\n"
+                               "Tekan 'S' untuk menyimpan data dan keluar\n"
+                               "Tekan 'C' untuk melanjutkan input data dari data terakhir\n"
+                               "Pilihan: ").upper()
+                if choice == "D":
+                    if rows:
+                        rows.pop()
+                        print("Baris terakhir berhasil dihapus.")
+                    else:
+                        print("Tidak ada baris yang dihapus.")
+                elif choice == "L":
+                    if rows:
+                        for row in rows:
+                            print(row)
+                    else:
+                        print("Tidak ada data saat ini.")
+                elif choice == "S":
+                    csv_writer.writerows(rows)
+                    print("Data berhasil disimpan.")
+                    return filename
+                elif choice == "C":
+                    if rows:
+                        print("Melanjutkan input data dari data terakhir.")
+                    else:
+                        print("Tidak ada data sebelumnya.")
+                else:
+                    print("Pilihan tidak valid.")
             else:
-                weight = int(weight)
+                day = input("Masukkan Hari: ").upper()
+                plastic_type = input("Jenis Plastik: ").upper()
+                weight = input("Timbangan (KG): ")
 
-            csv_writer.writerow([name, day, plastic_type, weight])
+                if "+" in weight:
+                    weight = sum(map(float, weight.split("+")))
+                elif "." in weight:
+                    weight = float(weight)
+                else:
+                    weight = int(weight)
+
+                rows.append([name, day, plastic_type, weight])
 
     return filename
+
+
 
 def input_debts(df: pd.DataFrame) -> pd.DataFrame:
     today = datetime.date.today()

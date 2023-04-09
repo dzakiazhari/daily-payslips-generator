@@ -113,5 +113,3 @@ The code defines three additional functions:
 3. generate_payslips: Generates payslips for each individual and saves them to a text file.
 
 The main function of the code reads in the two CSV files, calculates the salary earned by each individual, merges the salary and debt information, generates payslips, and saves them to a new text file.
-
-Overall, this code is designed to automate the process of generating payslips for individuals based on their recycling efforts and outstanding debt.

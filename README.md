@@ -1,6 +1,6 @@
 # Daily Workers Payslips Generator
 
-This program generates payslips for daily workers based on the data inputted and calculates the salary of waste pickers based on the weight and type of plastic they collect.
+Depending on the data entered, this programme generates payslips for daily workers and calculates waste picker salaries depending on the weight and kind of plastic collected.
 
 ## Daily Worker Payslip Generator
 
@@ -100,14 +100,14 @@ The script will generate a CSV file with the name payment_<date>.csv, where <dat
 
 ## CSV Read & Generate
 
-This code reads in two CSV files, one containing data on plastic recycling weights, and another containing debt information for individuals. The code uses pandas to manipulate and merge the dataframes, and generates payslips for each individual. The payslips are saved to a new text file named "revisi_payslips.txt".
+This function reads two CSV files, one containing data on plastic recycling weights and the other containing individual debt information. The code manipulates and merges dataframes with pandas and generates payslips for each individual. The payslips are saved in a new text file called "revisi_payslips.txt".
 
-The code imports three functions from another file named "input": read_and_sort_csv, calculate_salary, and get_plastic_price. The first function reads in the CSV file with recycling weights, sorts the data by date and time, and removes any duplicates. The second function calculates the salary earned by each individual, based on the weight of plastic they have recycled and the current plastic prices. The third function returns the current plastic prices.
+The code imports three methods named "input" from another file: read_and_sort_csv, calculate_salary, and get_plastic_price. The first programme reads a CSV file containing recycling weights, sorts the data by date and time, and removes any duplicates. The second function computes each individual's income based on the amount of plastic recycled and current plastic pricing. The third function returns the current price of plastic.
 
-The code defines three additional functions:
+Three extra functions are defined in the code:
 
 1. read_debts: Reads in the CSV file containing debt information and returns a dataframe with the debt information indexed by individual name.
 2. merge_debts: Merges the debt information with the payslip dataframe, adding columns for debt and remaining debt.
 3. generate_payslips: Generates payslips for each individual and saves them to a text file.
 
-The main function of the code reads in the two CSV files, calculates the salary earned by each individual, merges the salary and debt information, generates payslips, and saves them to a new text file.
+The code's main role is to read in the two CSV files, compute each individual's income, integrate the salary and debt information, generate payslips, and save them to a new text file.

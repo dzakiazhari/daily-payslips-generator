@@ -6,13 +6,14 @@ Depending on the data entered, this programme generates payslips for daily worke
 
 ### Dependencies
 
-The input_determined.py script requires the following Python packages:
+The scripts require the following Python packages:
 
 - csv
 - datetime
 - typing
 - pathlib
 - pandas
+- prompt-toolkit
 
 You can install them using pip:
 

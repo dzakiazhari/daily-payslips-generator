@@ -34,7 +34,7 @@ python aio_prompts.py
 	- D: Delete the last row of data 
 	- L: View the current data 
 	- S: Save the current data and leave
-	- C - keep entering info from the last time it was saved.
+	- C: keep entering info from the last time it was saved.
 
 4. Type in the number of workers who still owe money.
 

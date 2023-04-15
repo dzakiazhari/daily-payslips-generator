@@ -3,21 +3,26 @@ import datetime
 from typing import List
 from pathlib import Path
 import pandas as pd
+from prompt_toolkit import prompt
+from prompt_toolkit.history import InMemoryHistory
 
 def input_data() -> str:
     today = datetime.date.today()
     filename = f"timbangan_{today}.csv"
+    name_history = InMemoryHistory()
+    day_history = InMemoryHistory()
+    plastic_type_history = InMemoryHistory()
 
     with open(filename, "a", newline="") as csvfile:
         csv_writer = csv.writer(csvfile)
         rows = []
         while True:
-            name = input("Nama ('N'): ").upper()
+            name = prompt("Nama ('N'): ", history=name_history).upper()
             if name == "N":
                 choice = input("Tekan 'D' untuk menghapus baris terakhir\n"
                                "Tekan 'L' untuk melihat data saat ini\n"
-                               "Tekan 'S' untuk menyimpan data dan keluar\n"
                                "Tekan 'C' untuk melanjutkan input data dari data terakhir\n"
+                               "Tekan 'S' untuk menyimpan data dan keluar\n"
                                "Pilihan: ").upper()
                 if choice == "D":
                     if rows:
@@ -43,8 +48,8 @@ def input_data() -> str:
                 else:
                     print("Pilihan tidak valid.")
             else:
-                day = input("Masukkan Hari: ").upper()
-                plastic_type = input("Jenis Plastik: ").upper()
+                day = prompt("Masukkan Hari: ", history=day_history).upper()
+                plastic_type = prompt("Jenis Plastik: ", history=plastic_type_history).upper()
                 weight = input("Timbangan (KG): ")
 
                 if "+" in weight:
@@ -56,9 +61,11 @@ def input_data() -> str:
 
                 rows.append([name, day, plastic_type, weight])
 
+            name_history.append_string(name)
+            day_history.append_string(day)
+            plastic_type_history.append_string(plastic_type)
+            
     return filename
-
-
 
 def input_debts(df: pd.DataFrame) -> pd.DataFrame:
     today = datetime.date.today()

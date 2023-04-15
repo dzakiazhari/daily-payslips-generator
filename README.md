@@ -43,9 +43,12 @@ python aio_prompts.py
 
 4. Input the number of workers with remaining debts.
 
-5. Input the name, debt, and remaining debt for each worker with remaining debts.
+5. Press arrow key up for prompt history.
 
-6. The program will generate a markdown table for each worker's payslip.
+6. Input the name, debt, and remaining debt for each worker with remaining debts.
+
+7. The program will generate a markdown table for each worker's payslip.
+
 
 ### Files
 

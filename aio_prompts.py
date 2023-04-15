@@ -61,9 +61,9 @@ def input_data() -> str:
 
                 rows.append([name, day, plastic_type, weight])
 
-            name_history.append_string(name)
-            day_history.append_string(day)
-            plastic_type_history.append_string(plastic_type)
+            name_history.append_string(name.upper())
+            day_history.append_string(day.upper())
+            plastic_type_history.append_string(plastic_type.upper())
             
     return filename
 

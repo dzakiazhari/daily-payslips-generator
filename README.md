@@ -15,11 +15,6 @@ The scripts require the following Python packages:
 - pandas
 - prompt-toolkit
 
-You can install them using pip:
-
-```
-pip install pandas
-```
 
 ### Usage
 

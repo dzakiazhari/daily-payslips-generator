@@ -1,6 +1,6 @@
 # Daily Workers Payslips Generator
 
-Depending on the data entered, this programme generates payslips for daily workers and calculates waste picker salaries depending on the weight and kind of plastic collected.
+This programme makes pay stubs for daily workers based on the information they enter, and it figures out how much waste pickers get paid based on the weight and type of plastic they gather.
 
 ## Daily Worker Payslip Generator
 
@@ -26,37 +26,36 @@ python aio_prompts.py
 
 ### How to Use
 
-1. Run the program aio_prompts.py in the command line.
+1. Type aio_prompts.py into the command line and run it.
 
-2. Input the worker's name, day, plastic type, and weight (in KG) when prompted. Input "N" when you are finished inputting data for the day.
+2. When asked, enter the worker's name, day, type of plastic, and weight (in KG). When you are done entering info for the day, type "N".
 
-3. You will then be prompted with a few choices:
+3. You will then be given a few options to choose from:
+	- D: Delete the last row of data 
+	- L: View the current data 
+	- S: Save the current data and leave
+	- C - keep entering info from the last time it was saved.
 
-	- D - delete the last row of data 
-	- L - view the current data 
-	- S - save the current data and exit 
-	- C - continue inputting data from the last saved data Input the price for each plastic type when prompted.
+4. Type in the number of workers who still owe money.
 
-4. Input the number of workers with remaining debts.
+5. Press the up arrow key to see the past prompt.
 
-5. Press arrow key up for prompt history.
+6. Type in the name, debt, and debt left for each person who still owes money.
 
-6. Input the name, debt, and remaining debt for each worker with remaining debts.
-
-7. The program will generate a markdown table for each worker's payslip.
+7. For each worker's paycheck, the programme will make a discount table.
 
 
 ### Files
 
-- aio_prompts.py: The main program file that generates payslips for daily workers based on the data inputted.
-- input_determined.py: Secondary program that has predetermined price.
-- read_regenerate.py: Edit your csv and generate the revised payslips.
-- timbangan_{date}.csv: The file where the data for each day is stored. The date in the filename is the date when the data was inputted.
-- payment_{date}.csv: The file where the debt information for each day is stored. The date in the filename is the date when the debt information was inputted.
-- price_list_{date}.txt: The file where the price list for each plastic type is stored. The date in the filename is the date when the prices were inputted.
+- aio_prompts.py: main programme file that uses the information entered to make payslips for daily workers.
+- input_determined.py: a secondary programme with a price that has already been set.
+- read_regenerate.py: Change your CSV file and make new payslips.
+- timbangan_{date}.csv: The file where each day's info is kept. The date in the title is the date that the information was put into the file.
+- payment_date.csv is the file where each day's debt information is kept. The date in the name of the file is the date that the information about the debt was put in.
+- The file price_list_date>.txt is where the price list for each type of plastic is kept. The numbers were put in on the date shown in the filename.
+
 
 ## Predetermined Pricing
-
 
 You will be prompted to enter the following information for each waste picker:
 
@@ -99,14 +98,14 @@ The script will generate a CSV file with the name payment_<date>.csv, where <dat
 
 ## CSV Read & Generate
 
-This function reads two CSV files, one containing data on plastic recycling weights and the other containing individual debt information. The code manipulates and merges dataframes with pandas and generates payslips for each individual. The payslips are saved in a new text file called "revisi_payslips.txt".
+This method reads two CSV files. One has information about how much plastic can be recycled, and the other has information about each person's debt. The code manipulates dataframes, joins them with pandas, and makes paystubs for each person. The pay stubs are saved in a new text file called "revisi_payslips.txt."
 
-The code imports three methods named "input" from another file: read_and_sort_csv, calculate_salary, and get_plastic_price. The first programme reads a CSV file containing recycling weights, sorts the data by date and time, and removes any duplicates. The second function computes each individual's income based on the amount of plastic recycled and current plastic pricing. The third function returns the current price of plastic.
+The code imports from another file three methods called "input": read_and_sort_csv, calculate_salary, and get_plastic_price. The first tool reads recycling weights from a CSV file, sorts them by date and time, and gets rid of any duplicates. The second function figures out how much money each person makes based on how much plastic they recover and how much plastic costs right now. The third feature gives back the price of plastic right now.
 
-Three extra functions are defined in the code:
+In the code, three extra methods are set up:
 
-1. read_debts: Reads in the CSV file containing debt information and returns a dataframe with the debt information indexed by individual name.
-2. merge_debts: Merges the debt information with the payslip dataframe, adding columns for debt and remaining debt.
-3. generate_payslips: Generates payslips for each individual and saves them to a text file.
+1. read_debts: Reads in a CSV file with information about debts and gives back a dataframe with the debt information organised by person's name.
+2. merge_debts: Combines the debt information with the payslip dataframe, adding columns for debt and leftover debt.
+3. generate_payslips: Creates payslips for each person and saves them to a text file.
 
-The code's main role is to read in the two CSV files, compute each individual's income, integrate the salary and debt information, generate payslips, and save them to a new text file.
+The main job of the code is to read the two CSV files, figure out how much money each person makes, combine the salary and debt information, make payslips, and save them to a new text file.

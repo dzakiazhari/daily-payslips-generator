@@ -1,35 +1,18 @@
 import csv
-import sys
 import datetime
 from typing import List
 from pathlib import Path
 import pandas as pd
-import logging
-import datetime
 from prompt_toolkit import prompt
 from prompt_toolkit.history import InMemoryHistory
-
-
-# Prompt the user to choose whether to show the logging information or not
-show_logs = input("Apakah anda inging melihat informasi logging? (y/n): ").lower() == 'y'
-
-# Configure the logging module
-logging.basicConfig(
-    level=logging.INFO if show_logs else logging.WARNING,  # Set the logging level based on the user's input
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[
-        logging.FileHandler("payslip.log"),
-        logging.StreamHandler(sys.stdout if show_logs else sys.stderr)  # Set the output stream based on the user's input
-    ]
-)
 
 def input_data() -> str:
     today = datetime.date.today()
     filename = f"timbangan_{today}.csv"
+    name_history = InMemoryHistory()
     day_history = InMemoryHistory()
     plastic_type_history = InMemoryHistory()
 
-    logging.info(f"Opening CSV file for writing: {filename}")
     with open(filename, "a", newline="") as csvfile:
         csv_writer = csv.writer(csvfile)
         rows = []
@@ -45,113 +28,65 @@ def input_data() -> str:
                     if rows:
                         rows.pop()
                         print("Baris terakhir berhasil dihapus.")
-                        logging.info("Last row deleted")
                     else:
                         print("Tidak ada baris yang dihapus.")
-                        logging.warning("No row was deleted")
                 elif choice == "L":
                     if rows:
                         for row in rows:
                             print(row)
-                        logging.info("Showing current data")
                     else:
                         print("Tidak ada data saat ini.")
-                        logging.info("No data available")
                 elif choice == "S":
                     csv_writer.writerows(rows)
                     print("Data berhasil disimpan.")
-                    logging.info("Data saved successfully")
                     return filename
                 elif choice == "C":
                     if rows:
                         print("Melanjutkan input data dari data terakhir.")
-                        logging.info("Continuing input data from last row")
                     else:
                         print("Tidak ada data sebelumnya.")
-                        logging.info("No previous data available")
                 else:
                     print("Pilihan tidak valid.")
-                    logging.warning("Invalid choice selected")
             else:
-                # Validate day input
-                while True:
-                    day = prompt("Masukkan Hari: ", history=day_history).upper()
-                    if day.isalpha():
-                        break
-                    else:
-                        print("Input hari tidak valid. Harap masukkan hanya huruf.")
-                
+                day = prompt("Masukkan Hari: ", history=day_history).upper()
                 plastic_type = prompt("Jenis Plastik: ", history=plastic_type_history).upper()
-                
-                # Validate weight input
-                while True:
-                    weight = input("Timbangan (KG): ")
-                    try:
-                        if "+" in weight:
-                            weight = sum(map(float, weight.split("+")))
-                        else:
-                            weight = float(weight)
-                        break
-                    except ValueError:
-                        print("Input timbangan tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
+                weight = input("Timbangan (KG): ")
+
+                if "+" in weight:
+                    weight = sum(map(float, weight.split("+")))
+                elif "." in weight:
+                    weight = float(weight)
+                else:
+                    weight = int(weight)
 
                 rows.append([name, day, plastic_type, weight])
 
+            name_history.append_string(name.upper())
             day_history.append_string(day.upper())
             plastic_type_history.append_string(plastic_type.upper())
             
     return filename
 
-
 def input_debts(df: pd.DataFrame) -> pd.DataFrame:
     today = datetime.date.today()
     debts_filename = f"payment_{today}.csv"
-    logging.info(f"Opening debts file for writing: {debts_filename}")
+
     with open(debts_filename, "w", newline="") as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(["Name", "Debt", "Remaining Debt"])
 
         num_persons = input("Berapa banyak orang dengan BON? ")
-        logging.info(f"Number of persons with debt: {num_persons}")
         if num_persons == "0":
             return df
         else:
             num_persons = int(num_persons)
 
         for i in range(num_persons):
-            while True:
-                name = input("Input Nama: ").upper()
-                if name in df["Name"].values:
-                    break
-                else:
-                    print("Nama orang tidak ditemukan.")
-                    logging.warning(f"Name {name} not found in previous data")
+            name = input("Input Nama: ").upper()
+            debt = input("BON (debt): ")
+            remaining_debt = input("Sisa BON (remaining debt): ")
 
-            # Validate debt input
-            while True:
-                debt = input("BON (debt): ")
-                try:
-                    if "+" in debt:
-                        debt = sum(map(float, debt.split("+")))
-                    else:
-                        debt = float(debt)
-                    break
-                except ValueError:
-                    print("Input BON tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
-            
-            # Validate remaining debt input
-            while True:
-                remaining_debt = input("Sisa BON (remaining debt): ")
-                try:
-                    if "+" in remaining_debt:
-                        remaining_debt = sum(map(float, remaining_debt.split("+")))
-                    else:
-                        remaining_debt = float(remaining_debt)
-                    break
-                except ValueError:
-                    print("Input sisa BON tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
-
-            if debt == 0:
+            if debt == "0":
                 if "Debt" in df.columns:
                     df.loc[df["Name"] == name, "Debt"] = 0
                 if "Remaining Debt" in df.columns:
@@ -159,66 +94,44 @@ def input_debts(df: pd.DataFrame) -> pd.DataFrame:
             else:
                 if "Debt" not in df.columns:
                     df["Debt"] = 0
-                df.loc[df["Name"] == name, "Debt"] = debt
+                df.loc[df["Name"] == name, "Debt"] = int(debt)
                 if "Remaining Debt" not in df.columns:
                     df["Remaining Debt"] = 0
-                df.loc[df["Name"] == name, "Remaining Debt"] = remaining_debt
+                df.loc[df["Name"] == name, "Remaining Debt"] = int(remaining_debt)
 
             csv_writer.writerow([name, debt, remaining_debt])
-            logging.info(f"Debt for {name}: {debt}, Remaining debt for {name}: {remaining_debt}")
 
     return df
 
 
 def read_and_sort_csv(filename: str) -> pd.DataFrame:
-    logging.info(f"Reading and sorting CSV file: {filename}")
     df = pd.read_csv(filename, names=["Name", "Day", "Plastic Type", "Weight (KG)"])
     df_sorted = df.sort_values(by=["Name"])
-    logging.info(f"CSV file sorted and returned as DataFrame")
     return df_sorted
-
 
 def calculate_salary(df: pd.DataFrame) -> pd.DataFrame:
     plastic_types = df["Plastic Type"].unique()
     price_map = {}
     for plastic_type in plastic_types:
-        while True:
-            price = input(f"Masukkan harga untuk {plastic_type}: ")
-            try:
-                price = float(price)
-                break
-            except ValueError:
-                print("Input harga tidak valid. Harap masukkan angka")
-
+        price = int(input(f"Masukkan harga untuk {plastic_type}: "))
         price_map[plastic_type] = price
 
     # Save price list to text file
     today = datetime.date.today()
     filename = f"price_list_{today}.txt"
-    logging.info(f"Opening price list file for writing: {filename}")
     with open(filename, "w") as f:
         for plastic_type, price in price_map.items():
             f.write(f"{plastic_type}: {price}\n")
-    logging.info(f"Price list saved to file: {filename}")
-
+    
     df["Price (RP)"] = df["Plastic Type"].apply(lambda x: price_map.get(x, 300))
     df["Salary"] = df["Weight (KG)"] * df["Price (RP)"]
-    logging.info(f"Salary calculated and returned as DataFrame")
     return df
 
 
-
 def main():
-    logging.info("Starting Payslip Generator")
-
     filename = input_data()
-    logging.info(f"Input data file: {filename}")
-
     df_sorted = read_and_sort_csv(filename)
-    logging.info("CSV file read and sorted")
-
     df_salary = calculate_salary(df_sorted)
-    logging.info("Salary calculated")
 
     # Aggregate data by name, day, and plastic type
     df_agg = df_salary.groupby(["Name", "Day", "Plastic Type"]).agg(
@@ -228,7 +141,6 @@ def main():
     df_agg["Debt"] = pd.NA
     df_agg["Remaining Debt"] = pd.NA
     df_agg = input_debts(df_agg)
-    logging.info("Debt information inputted")
 
     # Create a payslip markdown table for each person
     payslip_tables = []
@@ -237,10 +149,7 @@ def main():
     sum_total_payment = 0
     sum_total_debt = 0
     sum_total_remaining_debt = 0
-    sum_total_last_payment = 0
 
-    # Create a list of tuples containing name and last_payment
-    last_payments = []
     for name in df_agg["Name"].unique():
         payslip = df_agg.loc[df_agg["Name"] == name]
         total_payment = payslip["Salary"].sum()
@@ -258,12 +167,6 @@ def main():
         # Update last_payment if the person has a debt
         if not pd.isna(debt):
             last_payment = total_payment - debt
-        
-        # Add last_payment to sum_total_last_payment
-        sum_total_last_payment += last_payment
-        
-        # Add name and last_payment to last_payments list
-        last_payments.append((name, last_payment))
 
         # Create horizontal headings
         days = sorted(payslip["Day"].unique())
@@ -316,35 +219,23 @@ def main():
         if not pd.isna(remaining_debt):
             sum_total_remaining_debt += remaining_debt
 
-    # Sort the last_payments list in descending order based on last_payment
-    last_payments_sorted = sorted(last_payments, key=lambda x: x[1], reverse=True)
-
-    # Print the numbered list of rank based on last_payment
-    print("\n\nRank based on last payment:")
-    for i, (name, last_payment) in enumerate(last_payments_sorted):
-        print(f"{i+1}. {name}: Rp {last_payment:.0f}")
-
-    # Print the sum of total payment slip, debt, remaining debt, and last payment
-    logging.info("Generating summary of total payment slip, debt, remaining debt, and last payment")
-    print(f"\n\nTotal Pembayaran Gaji: Rp {sum_total_payment:.0f}")
-    print(f"Total BON: Rp {sum_total_debt:.0f}")
-    print(f"Total Sisa BON: Rp {sum_total_remaining_debt:.0f}")
-    print(f"Total Gaji Akhir: Rp {sum_total_last_payment:.0f}")
+    # Print the sum of total payment slip, debt, and remaining debt
+    # print(f"\n\nTotal Payment Slip: Rp {sum_total_payment:.0f}")
+    # print(f"Total Debt: Rp {sum_total_debt:.0f}")
+    # print(f"Total Remaining Debt: Rp {sum_total_remaining_debt:.0f}")
 
     # Save all the payslip tables to a text file
-    logging.info("Saving payslip tables to text file")
     with open("payslips.txt", "w") as f:
         for payslip_table in payslip_tables:
             f.write(payslip_table)
             f.write("\n")
-        # Insert sum of total payment slip, debt, remaining debt, and last payment into the payslips.txt file
+        # Insert sum of total payment slip, debt, and remaining debt into the payslips.txt file
         f.write(f"\n\nTotal Pembayaran Gaji: Rp {sum_total_payment:.0f}")
         f.write(f"\nTotal BON: Rp {sum_total_debt:.0f}")
         f.write(f"\nTotal Sisa BON: Rp {sum_total_remaining_debt:.0f}")
-        f.write(f"\nTotal Gaji Akhir: Rp {sum_total_last_payment:.0f}")
-        
-    logging.info("Payslip generation complete [END]")
+        print(f"\n\nTotal Pembayaran Gaji: Rp {sum_total_payment:.0f}")
+        print(f"Total BON: Rp {sum_total_debt:.0f}")
+        print(f"Total Sisa BON: Rp {sum_total_remaining_debt:.0f}")
 
 if __name__ == "__main__":
     main()
-

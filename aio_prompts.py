@@ -144,6 +144,12 @@ def main():
 
     # Create a payslip markdown table for each person
     payslip_tables = []
+
+    # Initialize variables to store sum of total payment slip, debt, and remaining debt
+    sum_total_payment = 0
+    sum_total_debt = 0
+    sum_total_remaining_debt = 0
+
     for name in df_agg["Name"].unique():
         payslip = df_agg.loc[df_agg["Name"] == name]
         total_payment = payslip["Salary"].sum()
@@ -198,7 +204,7 @@ def main():
             payslip_table += row + "\n"
             if i == len(rows) - 2:
                 payslip_table += horiz_divider
-        # Update payslip table with new variables
+                # Update payslip table with new variables
         payslip_table += f"\nGaji: Rp {total_payment:.0f}"
         payslip_table += f"\nBON: Rp {debt:.0f}"
         payslip_table += f"\nSisa BON: Rp {remaining_debt:.0f}"
@@ -206,13 +212,30 @@ def main():
         payslip_table += f"\n======***======"
         payslip_tables.append(payslip_table)
 
+        # Update the sum of total payment slip, debt, and remaining debt
+        sum_total_payment += total_payment
+        if not pd.isna(debt):
+            sum_total_debt += debt
+        if not pd.isna(remaining_debt):
+            sum_total_remaining_debt += remaining_debt
+
+    # Print the sum of total payment slip, debt, and remaining debt
+    # print(f"\n\nTotal Payment Slip: Rp {sum_total_payment:.0f}")
+    # print(f"Total Debt: Rp {sum_total_debt:.0f}")
+    # print(f"Total Remaining Debt: Rp {sum_total_remaining_debt:.0f}")
 
     # Save all the payslip tables to a text file
     with open("payslips.txt", "w") as f:
         for payslip_table in payslip_tables:
             f.write(payslip_table)
             f.write("\n")
-            print(payslip_table)
+        # Insert sum of total payment slip, debt, and remaining debt into the payslips.txt file
+        f.write(f"\n\nTotal Pembayaran Gaji: Rp {sum_total_payment:.0f}")
+        f.write(f"\nTotal BON: Rp {sum_total_debt:.0f}")
+        f.write(f"\nTotal Sisa BON: Rp {sum_total_remaining_debt:.0f}")
+        print(f"\n\nTotal Pembayaran Gaji: Rp {sum_total_payment:.0f}")
+        print(f"Total BON: Rp {sum_total_debt:.0f}")
+        print(f"Total Sisa BON: Rp {sum_total_remaining_debt:.0f}")
 
 if __name__ == "__main__":
     main()

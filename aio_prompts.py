@@ -28,6 +28,7 @@ def input_data() -> str:
     filename = f"timbangan_{today}.csv"
     day_history = InMemoryHistory()
     plastic_type_history = InMemoryHistory()
+    name_history = InMemoryHistory()
 
     logging.info(f"Opening CSV file for writing: {filename}")
     with open(filename, "a", newline="") as csvfile:
@@ -99,6 +100,7 @@ def input_data() -> str:
 
             day_history.append_string(day.upper())
             plastic_type_history.append_string(plastic_type.upper())
+            name_history.append_string(name.upper())
             
     return filename
 

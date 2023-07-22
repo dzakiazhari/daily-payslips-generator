@@ -163,16 +163,23 @@ def input_debts(df: pd.DataFrame) -> pd.DataFrame:
                     print("Input BON tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
             
             # Validate remaining debt input
+            print("Masukkan 'n' jika nilai sisa BON tidak diketahui!")
             while True:
-                remaining_debt = input("Sisa BON (remaining debt): ")
-                try:
-                    if "+" in remaining_debt:
-                        remaining_debt = sum(map(float, remaining_debt.split("+")))
-                    else:
-                        remaining_debt = float(remaining_debt)
+                remaining_debt = None
+                remaining_debt_input = input("Sisa BON (remaining debt): ")
+                if remaining_debt_input.strip().lower() == "n":
+                    remaining_debt_str = "NA"
                     break
-                except ValueError:
-                    print("Input sisa BON tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
+                else:
+                    try:
+                        if "+" in remaining_debt_input:
+                            remaining_debt = sum(map(float, remaining_debt_input.split("+")))
+                        else:
+                            remaining_debt = float(remaining_debt_input)
+                        remaining_debt_str = str(remaining_debt)
+                        break
+                    except ValueError:
+                        print("Input sisa BON tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
 
             if debt == 0:
                 if "Debt" in df.columns:
@@ -185,10 +192,11 @@ def input_debts(df: pd.DataFrame) -> pd.DataFrame:
                 df.loc[df["Name"] == name, "Debt"] = debt
                 if "Remaining Debt" not in df.columns:
                     df["Remaining Debt"] = 0
-                df.loc[df["Name"] == name, "Remaining Debt"] = remaining_debt
+                if remaining_debt is not None:
+                    df.loc[df["Name"] == name, "Remaining Debt"] = remaining_debt
 
-            csv_writer.writerow([name, debt, remaining_debt])
-            logging.info(f"Debt for {name}: {debt}, Remaining debt for {name}: {remaining_debt}")
+            csv_writer.writerow([name, debt, remaining_debt_str])
+            logging.info(f"Debt for {name}: {debt}, Remaining debt for {name}: {remaining_debt_str}")
 
     return df
 
@@ -396,7 +404,7 @@ def main():
         rows.append(total_row)
 
         # Combine all rows into a markdown table
-        payslip_table = f"\n======***======\n"
+        payslip_table = f"\n============***============\n"
         payslip_table += f"Nama: BU {name}\n"
         payslip_table += f"Tanggal: {datetime.date.today()}\n\n"
         payslip_table += horiz_headings + "\n"
@@ -410,7 +418,7 @@ def main():
         payslip_table += f"\nBON: Rp {debt:.0f}"
         payslip_table += f"\nSisa BON: Rp {remaining_debt:.0f}"
         payslip_table += f"\nGaji akhir: Rp {last_payment:.0f}"
-        payslip_table += f"\n======***======"
+        payslip_table += f"\n============***============"
         payslip_tables.append(payslip_table)
 
         # Update the sum of total payment slip, debt, and remaining debt

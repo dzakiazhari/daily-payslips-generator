@@ -1,10 +1,12 @@
 import csv
+import os
 import sys
 import datetime
 from typing import List
 from pathlib import Path
 import pandas as pd
 import logging
+import re
 import datetime
 from prompt_toolkit import prompt
 from prompt_toolkit.history import InMemoryHistory
@@ -25,7 +27,12 @@ logging.basicConfig(
 
 def input_data() -> str:
     today = datetime.date.today()
-    filename = f"timbangan_{today}.csv"
+    # Create the INPUT folder if it doesn't exist
+    input_folder = "INPUT"
+    if not os.path.exists(input_folder):
+        os.makedirs(input_folder)
+
+    filename = os.path.join(input_folder, f"timbangan_{today}.csv")
     day_history = InMemoryHistory()
     plastic_type_history = InMemoryHistory()
     name_history = InMemoryHistory()
@@ -97,11 +104,14 @@ def input_data() -> str:
                     else:
                         print("Input hari tidak valid. Harap masukkan hanya huruf.")
 
-                # Input plastic type
+                # Validate plastic type
                 while True:
                     plastic_type = prompt("Jenis Plastik: ", history=plastic_type_history).strip().upper()
                     if plastic_type:
-                        break
+                        if re.match("^[a-zA-Z0-9]+$", plastic_type):
+                            break
+                        else:
+                            print("Jenis plastik hanya boleh terdiri dari huruf dan angka.")
                     else:
                         print("Harap masukkan jenis plastik.")
                 
@@ -128,59 +138,91 @@ def input_data() -> str:
 
 def input_debts(df: pd.DataFrame) -> pd.DataFrame:
     today = datetime.date.today()
-    debts_filename = f"debts_{today}.csv"
+    # Create the INPUT folder if it doesn't exist
+    input_folder = "INPUT"
+    if not os.path.exists(input_folder):
+        os.makedirs(input_folder)
+    debts_filename = os.path.join(input_folder, f"debts_{today}.csv")
     logging.info(f"Opening debts file for writing: {debts_filename}")
-    with open(debts_filename, "w", newline="") as csvfile:
-        csv_writer = csv.writer(csvfile)
-        csv_writer.writerow(["Name", "Debt", "Remaining Debt"])
 
-        num_persons = input("Berapa banyak orang dengan BON? ")
-        logging.info(f"Number of persons with debt: {num_persons}")
-        if num_persons == "0":
-            return df
-        else:
-            num_persons = int(num_persons)
+    confirm_persons = input("Apakah ada orang dengan BON? (y/n): ")
+    if confirm_persons.lower() == "n":
+        return df
+    ###
+    unique_names = set()  # Set to store unique names
 
-        for i in range(num_persons):
-            while True:
-                name = input("Input Nama: ").upper()
-                if name in df["Name"].values:
-                    break
+    while True:
+        debts = []
+        unique_names.clear()  # Clear the set for each iteration
+
+        while True:
+            name = input("Input Nama: ").upper()
+            if name not in df["Name"].values:
+                print("Nama orang tidak ditemukan.")
+                continue
+
+            if name in unique_names:
+                print("Nama orang sudah dihitung sebelumnya.")
+                continue
+
+            debt = input("BON (debt): ")
+            try:
+                if "+" in debt:
+                    debt = sum(map(float, debt.split("+")))
                 else:
-                    print("Nama orang tidak ditemukan.")
-                    logging.warning(f"Name {name} not found in previous data")
+                    debt = float(debt)
+            except ValueError:
+                print("Input BON tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
+                continue
 
-            # Validate debt input
-            while True:
-                debt = input("BON (debt): ")
+            remaining_debt_input = input("Sisa BON (remaining debt): ")
+            if remaining_debt_input.strip().lower() == "n":
+                remaining_debt_str = "NA"
+            else:
                 try:
-                    if "+" in debt:
-                        debt = sum(map(float, debt.split("+")))
+                    if "+" in remaining_debt_input:
+                        remaining_debt = sum(map(float, remaining_debt_input.split("+")))
                     else:
-                        debt = float(debt)
-                    break
+                        remaining_debt = float(remaining_debt_input)
+                    remaining_debt_str = str(remaining_debt)
                 except ValueError:
-                    print("Input BON tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
-            
-            # Validate remaining debt input
-            print("Masukkan 'n' jika nilai sisa BON tidak diketahui!")
-            while True:
-                remaining_debt = None
-                remaining_debt_input = input("Sisa BON (remaining debt): ")
-                if remaining_debt_input.strip().lower() == "n":
-                    remaining_debt_str = "NA"
-                    break
-                else:
-                    try:
-                        if "+" in remaining_debt_input:
-                            remaining_debt = sum(map(float, remaining_debt_input.split("+")))
-                        else:
-                            remaining_debt = float(remaining_debt_input)
-                        remaining_debt_str = str(remaining_debt)
-                        break
-                    except ValueError:
-                        print("Input sisa BON tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
+                    print("Input sisa BON tidak valid. Harap masukkan angka atau angka dengan tanda '+'")
+                    continue
 
+            debts.append((name, debt, remaining_debt_str))
+            unique_names.add(name)  # Add the name to the set
+            ##
+            if len(debts) == len(df["Name"].unique()):
+                print("Jumlah orang dengan BON telah mencapai batas maksimal.")
+                break
+
+            more_input = input("Apakah ada orang dengan BON lagi? (y/n): ")
+            if more_input.lower() == "n" or len(debts) == len(df["Name"].values):
+                break
+
+        # Confirm all inputs
+        print("=================================")
+        print("Konfirmasi Input:")
+        for name, debt, remaining_debt_input in debts:
+            print(f"Nama: {name}")
+            print(f"BON: {debt}")
+            print(f"Sisa BON: {remaining_debt_input}")
+            print("---------------------------------")
+        confirm_input = input("Apakah semua input di atas benar? (y/n): ")
+        if confirm_input.lower() != "y":
+            continue
+
+        # Show list of name, debt, remaining debt
+        print("=================================")
+        print("Daftar Nama, BON, Sisa BON:")
+        for name, debt, remaining_debt_input in debts:
+            print(f"Nama: {name}")
+            print(f"BON: {debt}")
+            print(f"Sisa BON: {remaining_debt_input}")
+            print("---------------------------------")
+
+        # Update DataFrame with debts
+        for name, debt, remaining_debt_str in debts:
             if debt == 0:
                 if "Debt" in df.columns:
                     df.loc[df["Name"] == name, "Debt"] = 0
@@ -192,13 +234,19 @@ def input_debts(df: pd.DataFrame) -> pd.DataFrame:
                 df.loc[df["Name"] == name, "Debt"] = debt
                 if "Remaining Debt" not in df.columns:
                     df["Remaining Debt"] = 0
-                if remaining_debt is not None:
-                    df.loc[df["Name"] == name, "Remaining Debt"] = remaining_debt
+                if remaining_debt_str != "NA":
+                    df.loc[df["Name"] == name, "Remaining Debt"] = float(remaining_debt_str)
 
-            csv_writer.writerow([name, debt, remaining_debt_str])
-            logging.info(f"Debt for {name}: {debt}, Remaining debt for {name}: {remaining_debt_str}")
+        # Write debts to CSV
+        with open(debts_filename, "w", newline="") as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow(["Name", "Debt", "Remaining Debt"])
 
-    return df
+            for name, debt, remaining_debt_str in debts:
+                csv_writer.writerow([name, debt, remaining_debt_str])
+                logging.info(f"Debt for {name}: {debt}, Remaining debt for {name}: {remaining_debt_str}")
+
+        return df
 
 def read_and_sort_csv(filename: str) -> pd.DataFrame:
     logging.info(f"Reading and sorting CSV file: {filename}")
@@ -242,18 +290,22 @@ def calculate_salary(df: pd.DataFrame) -> pd.DataFrame:
             print("Input tidak valid. Harap masukkan 'y' atau 'n'")
         
     # Save price list to text file
-    today = datetime.date.today().strftime("%Y-%m-%d")
-    filename = f"stats_{today}.txt"
-    logging.info(f"Opening price list file for writing: {filename}")
-    with open(filename, "w") as f:
+    folder_name = "HASIL"
+    # Get the current date for the filename
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    filename = os.path.join(folder_name, f"stats_{current_date}.txt")
+    with open(filename, "a") as f:  # Use "a" to append to the file
         # Write the current date
-        current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        f.write(f"Date: {current_date}\n\n")
+        current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        f.write(f"Tanggal: {current_date}\n")
+        f.write(f"Harga Plastik: \n")
 
         # Write the plastic prices
         for plastic_type, price in price_map.items():
             f.write(f"{plastic_type}: {price}\n")
-
     logging.info(f"Price list saved to file: {filename}")
 
     df["Price (RP)"] = df["Plastic Type"].apply(lambda x: price_map.get(x, 300))
@@ -295,30 +347,42 @@ def rank_last_payment(df_agg):
     return last_payments_ranked
 
 def generate_stats(df_agg):
-    # Get the current date for the filename
-    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
-
-    # Call sum_weighted_plastics function to get the weighted plastic totals
+    total_all_plastics = df_agg["Weight (KG)"].sum()
     total_weighted_plastics = sum_weighted_plastics(df_agg)
-
-    # Call rank_last_payment function to get the ranked list of last payments
     last_payments_ranked = rank_last_payment(df_agg)
 
-    # Save the lists to a text file
-    filename = f"stats_{current_date}.txt"
-    with open(filename, "a") as f:  # Use "a" to append to the file
+    # Calculate total weight of plastic for each person
+    total_weight_per_person = df_agg.groupby("Name")["Weight (KG)"].sum()
 
+    # Sort last payments ranked by highest last payment
+    last_payments_ranked.sort(key=lambda x: x[2], reverse=True)
+
+    # Save the lists to a text file
+    folder_name = "HASIL"
+
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    # Get the current date for the filename
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    filename = os.path.join(folder_name, f"stats_{current_date}.txt")
+
+    with open(filename, "a") as f:  # Use "a" to append to the file
         # Write total weighted plastics
+        f.write(f"\nTotal berat seluruh plastik: {total_all_plastics} kg")
         f.write("\nJumlah berat tiap plastik:\n")
         for plastic_type, total_weight in total_weighted_plastics.items():
             f.write(f"{plastic_type}: {total_weight}\n")
 
-        # Write ranked last payments
+        # Write ranked last payments with weight
         f.write("\nRanking jumlah pembayaran gaji:\n")
         for rank, name, last_payment in last_payments_ranked:
-            f.write(f"{rank}. {name}: Rp {last_payment:.0f}\n")
+            rank_weight = total_weight_per_person.get(name, 0)
+            f.write(f"{rank}. {name}: Rp {last_payment:.0f} | {rank_weight} kg\n")
 
     print(f"Stats appended to {filename}")
+
 
 def main():
     logging.info("Starting Payslip Generator")
@@ -443,7 +507,13 @@ def main():
 
     # Save all the payslip tables to a text file
     logging.info("Saving payslip tables to text file")
-    with open("payslips.txt", "w") as f:
+    folder_name = "HASIL"
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    filename = os.path.join(folder_name, f"payslips_{current_date}.txt")
+    with open(filename, "a") as f:  # Use "a" to append to the file
         for payslip_table in payslip_tables:
             f.write(payslip_table)
             f.write("\n")

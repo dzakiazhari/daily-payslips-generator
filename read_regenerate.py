@@ -1,4 +1,5 @@
 import csv
+import os
 import sys
 import datetime
 from typing import List
@@ -57,21 +58,26 @@ def calculate_salary(df: pd.DataFrame) -> pd.DataFrame:
             continue
         else:
             print("Input tidak valid. Harap masukkan 'y' atau 'n'")
-        
+    ######    
     # Save price list to text file
-    today = datetime.date.today().strftime("%Y-%m-%d")
-    filename = f"rev_stats_{today}.txt"
-    logging.info(f"Opening price list file for writing: {filename}")
-    with open(filename, "w") as f:
+    folder_name = "REVISI"
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    filename = os.path.join(folder_name, f"rev_stats_{current_date}.txt")
+    with open(filename, "a") as f:  # Use "a" to append to the file
         # Write the current date
-        current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        f.write(f"Date: {current_date}\n\n")
-
+        current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        f.write(f"Tanggal: {current_date}\n")
+        f.write(f"Harga Plastik: \n")
+        
         # Write the plastic prices
         for plastic_type, price in price_map.items():
             f.write(f"{plastic_type}: {price}\n")
 
     logging.info(f"Price list saved to file: {filename}")
+
 
     df["Price (RP)"] = df["Plastic Type"].apply(lambda x: price_map.get(x, 300))
     df["Salary"] = df["Weight (KG)"] * df["Price (RP)"]
@@ -112,28 +118,39 @@ def rank_last_payment(df_agg):
     return last_payments_ranked
 
 def generate_stats(df_agg):
-    # Get the current date for the filename
-    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
-
-    # Call sum_weighted_plastics function to get the weighted plastic totals
+    total_all_plastics = df_agg["Weight (KG)"].sum()
     total_weighted_plastics = sum_weighted_plastics(df_agg)
-
-    # Call rank_last_payment function to get the ranked list of last payments
     last_payments_ranked = rank_last_payment(df_agg)
 
-    # Save the lists to a text file
-    filename = f"rev_stats_{current_date}.txt"
-    with open(filename, "a") as f:  # Use "a" to append to the file
+    # Calculate total weight of plastic for each person
+    total_weight_per_person = df_agg.groupby("Name")["Weight (KG)"].sum()
 
+    # Sort last payments ranked by highest last payment
+    last_payments_ranked.sort(key=lambda x: x[2], reverse=True)
+
+    # Save the lists to a text file
+    folder_name = "REVISI"
+
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    # Get the current date for the filename
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    filename = os.path.join(folder_name, f"rev_stats_{current_date}.txt")
+
+    with open(filename, "a") as f:  # Use "a" to append to the file
         # Write total weighted plastics
+        f.write(f"\nTotal berat seluruh plastik: {total_all_plastics} kg")
         f.write("\nJumlah berat tiap plastik:\n")
         for plastic_type, total_weight in total_weighted_plastics.items():
             f.write(f"{plastic_type}: {total_weight}\n")
 
-        # Write ranked last payments
+        # Write ranked last payments with weight
         f.write("\nRanking jumlah pembayaran gaji:\n")
         for rank, name, last_payment in last_payments_ranked:
-            f.write(f"{rank}. {name}: Rp {last_payment:.0f}\n")
+            rank_weight = total_weight_per_person.get(name, 0)
+            f.write(f"{rank}. {name}: Rp {last_payment:.0f} | {rank_weight} kg\n")
 
     print(f"Stats appended to {filename}")
 
@@ -141,8 +158,10 @@ def main():
     logging.info("Starting Payslip Generator")
 
     today = datetime.date.today()
-    timbangan_filename = f"timbangan_{today}.csv"
-    payment_filename = f"debts_{today}.csv"
+    input_folder = "INPUT"
+    timbangan_filename = os.path.join(input_folder, f"timbangan_{today}.csv")
+    payment_filename = os.path.join(input_folder, f"debts_{today}.csv")
+    
     df_sorted = read_and_sort_csv(timbangan_filename)
     df_salary = calculate_salary(df_sorted)
 
@@ -150,6 +169,7 @@ def main():
     df_agg = df_salary.groupby(["Name", "Day", "Plastic Type"]).agg(
         {"Weight (KG)": "sum", "Salary": "sum"}
     ).reset_index()
+
 
     df_agg["Debt"] = pd.NA
     df_agg["Remaining Debt"] = pd.NA
@@ -231,7 +251,7 @@ def main():
                 # Update payslip table with new variables
         payslip_table += f"\nGaji: Rp {total_payment:.0f}"
         payslip_table += f"\nBON: Rp {debt:.0f}"
-        payslip_table += f"\nSisa BON: Rp {remaining_debt:.0f}"
+        payslip_table += f"\nSisa BON: Rp {float(remaining_debt):.0f}"
         payslip_table += f"\nGaji akhir: Rp {last_payment:.0f}"
         payslip_table += f"\n============***============"
         payslip_tables.append(payslip_table)
@@ -241,7 +261,7 @@ def main():
         if not pd.isna(debt):
             sum_total_debt += debt
         if not pd.isna(remaining_debt):
-            sum_total_remaining_debt += remaining_debt
+            sum_total_remaining_debt += float(remaining_debt)
 
     # Sort the last_payments list in descending order based on last_payment
     last_payments_sorted = sorted(last_payments, key=lambda x: x[1], reverse=True)
@@ -255,10 +275,16 @@ def main():
     print(f"Total BON: Rp {sum_total_debt:.0f}")
     print(f"Total Sisa BON: Rp {sum_total_remaining_debt:.0f}")
     print(f"Total Gaji Akhir: Rp {sum_total_last_payment:.0f}")
-
+    #####
     # Save all the payslip tables to a text file
     logging.info("Saving payslip tables to text file")
-    with open("payslips.txt", "w") as f:
+    folder_name = "REVISI"
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    filename = os.path.join(folder_name, f"rev_payslips_{current_date}.txt")
+    with open(filename, "a") as f:  # Use "a" to append to the file
         for payslip_table in payslip_tables:
             f.write(payslip_table)
             f.write("\n")
@@ -267,8 +293,10 @@ def main():
         f.write(f"\nTotal BON: Rp {sum_total_debt:.0f}")
         f.write(f"\nTotal Sisa BON: Rp {sum_total_remaining_debt:.0f}")
         f.write(f"\nTotal Gaji Akhir: Rp {sum_total_last_payment:.0f}")
-        
+            
     logging.info("Payslip generation complete [END]")
+
+
 
 if __name__ == "__main__":
     main()

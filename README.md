@@ -50,6 +50,8 @@ python aio_prompts.py
 - aio_prompts.py: main programme file that uses the information entered to make payslips for daily workers.
 - input_determined.py: a secondary programme with a price that has already been set.
 - read_regenerate.py: Change your CSV file and make new payslips.
+- check_input.py: Check your input based on database.xlsx
+- prettify-md.py: Prettify your md files.
 - timbangan_{date}.csv: The file where each day's info is kept. The date in the title is the date that the information was put into the file.
 - payment_date.csv is the file where each day's debt information is kept. The date in the name of the file is the date that the information about the debt was put in.
 - The file price_list_date>.txt is where the price list for each type of plastic is kept. The numbers were put in on the date shown in the filename.

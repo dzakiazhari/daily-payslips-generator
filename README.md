@@ -47,8 +47,12 @@ python aio_prompts.py
 
 ### Files
 
+<<<<<<< HEAD
 - aio_prompts.py: main program file that uses the information entered to make payslips for daily workers.
 - input_determined.py: a secondary program with a price that has already been set.
+=======
+- aio_prompts.py: main programme file that uses the information entered to make payslips for daily workers.
+>>>>>>> a4b7e5608b1e83448012b47f2f0f5240fc2ac012
 - read_regenerate.py: Change your CSV file and make new payslips.
 - check_input.py: Check your input based on database.xlsx. Please create your own database.xlsx first for miss-match checking.
 - prettify-md.py: Prettify your md files.

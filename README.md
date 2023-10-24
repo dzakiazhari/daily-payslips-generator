@@ -1,6 +1,6 @@
 # Daily Workers Payslips Generator
 
-This programme makes pay stubs for daily workers based on the information they enter, and it figures out how much waste pickers get paid based on the weight and type of plastic they gather.
+This program makes pay stubs for daily workers based on the information they enter, and it figures out how much waste pickers get paid based on the weight and type of plastic they gather.
 
 ## Daily Worker Payslip Generator
 
@@ -42,15 +42,15 @@ python aio_prompts.py
 
 6. Type in the name, debt, and debt left for each person who still owes money.
 
-7. For each worker's paycheck, the programme will make a discount table.
+7. For each worker's paycheck, the program will make a discount table.
 
 
 ### Files
 
-- aio_prompts.py: main programme file that uses the information entered to make payslips for daily workers.
-- input_determined.py: a secondary programme with a price that has already been set.
+- aio_prompts.py: main program file that uses the information entered to make payslips for daily workers.
+- input_determined.py: a secondary program with a price that has already been set.
 - read_regenerate.py: Change your CSV file and make new payslips.
-- check_input.py: Check your input based on database.xlsx
+- check_input.py: Check your input based on database.xlsx. Please create your own database.xlsx first for miss-match checking.
 - prettify-md.py: Prettify your md files.
 - timbangan_{date}.csv: The file where each day's info is kept. The date in the title is the date that the information was put into the file.
 - payment_date.csv is the file where each day's debt information is kept. The date in the name of the file is the date that the information about the debt was put in.
@@ -96,7 +96,7 @@ You can also input debts and remaining debts for waste pickers. The script will 
 - Debt
 - Remaining debt
 
-The script will generate a CSV file with the name payment_<date>.csv, where <date> is the current date. The CSV file contains the following
+The script will generate a CSV file with the name payment_<date>.csv, where <date> is the current date.
 
 ## CSV Read & Generate
 
